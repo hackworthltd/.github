@@ -1,0 +1,19 @@
+name: Reusable Nix installation (public repos)
+
+on:
+  workflow_call:
+
+jobs:
+  install-nix:
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install & configure Nix for public Hackworth Ltd repos
+        uses: cachix/install-nix-action@v17
+        with:
+          extra_nix_config: |
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hackworthltd.cachix.org-1:0JTCI0qDo2J+tonOalrSQP3yRNleN6bQucJ05yDltRI= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= loony-tools:pr9m4BkM/5/eSTZlkQyRt57Jz7OMBxNSUiMC4FkcNfk=
+            substituters = https://cache.nixos.org?priority=10 https://hackworthltd.cachix.org?priority=30 https://hydra.iohk.io?priority=50 https://cache.zw3rk.com?priority=60

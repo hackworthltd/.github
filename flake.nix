@@ -72,8 +72,12 @@
           pre-commit-hooks-nix.lib.${system}.run {
             src = ./.;
             hooks = {
-              prettier.enable = true;
               nixpkgs-fmt.enable = true;
+
+              prettier = {
+                enable = true;
+                excludes = [ ".github/" ];
+              };
 
               actionlint = {
                 enable = true;
@@ -93,7 +97,6 @@
               "CODE_OF_CONDUCT.md"
               "LICENSE"
               ".mergify.yml"
-              ".github/"
               ".buildkite/"
             ];
 
