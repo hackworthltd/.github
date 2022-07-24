@@ -1,0 +1,11 @@
+name: Update Nix dependencies.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 11 pm every Tuesday
+    - cron: '0 23 * * 2'
+
+jobs:
+  update-nix-dependencies:
+    uses: hackworthltd/.github/.github/workflows/reusable-update-nix-flake-public.yml@main
