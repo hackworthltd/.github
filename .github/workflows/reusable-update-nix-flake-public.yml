@@ -6,6 +6,8 @@ on:
 jobs:
   install-nix:
     permissions:
+      pull-requests: write
+      contents: write
       id-token: write
 
     runs-on: ubuntu-latest
