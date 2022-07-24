@@ -6,7 +6,7 @@ on:
 jobs:
   install-nix:
     permissions:
-      contents: read
+      contents: write
 
     runs-on: ubuntu-latest
 
