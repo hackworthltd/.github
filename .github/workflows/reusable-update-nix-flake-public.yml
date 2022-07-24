@@ -5,9 +5,6 @@ on:
 
 jobs:
   install-nix:
-    permissions:
-      contents: write
-
     runs-on: ubuntu-latest
 
     steps:
