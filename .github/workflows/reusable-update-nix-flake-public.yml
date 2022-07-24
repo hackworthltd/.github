@@ -23,6 +23,8 @@ jobs:
       - name: Update Nix dependencies.
         uses: DeterminateSystems/update-flake-lock@v10
         with:
+          commit-msg: "chore(nix): Update dependencies."
+          branch: "chore/update-nix-dependencies"
           pr-title: "chore(nix): Update dependencies."
           pr-labels: |
             automated
