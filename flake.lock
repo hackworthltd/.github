@@ -165,11 +165,11 @@
         "sops-nix": "sops-nix"
       },
       "locked": {
-        "lastModified": 1671559464,
-        "narHash": "sha256-lw426ebnr9qE/tt1VrkjI19ih9W8Ug3CKxXAgqXLP6A=",
+        "lastModified": 1671850685,
+        "narHash": "sha256-ofr0kFSW4UxSo+y6HAJg+6lDP/eAwPfUg6aTPh/DHTs=",
         "owner": "hackworthltd",
         "repo": "hacknix",
-        "rev": "6f937d1593c7d7aab9cb13895f00ff42a68af8ae",
+        "rev": "b4b287870ad3ffbb3ce418fb89204ad826d6ec6c",
         "type": "github"
       },
       "original": {
@@ -297,11 +297,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1671458120,
-        "narHash": "sha256-2+k/OONN4OF21TeoNjKB5sXVZv6Zvm/uEyQIW9OYCg8=",
+        "lastModified": 1671788672,
+        "narHash": "sha256-tLkPxJuos3jki2f/TZdHn+NuMQAzN9s2E4QudylQLg0=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "e37ef84b478fa8da0ced96522adfd956fde9047a",
+        "rev": "2c74fcd6c5fc14a61de158fb796243543f46b217",
         "type": "github"
       },
       "original": {
@@ -352,11 +352,11 @@
         "nixpkgs-stable": "nixpkgs-stable_3"
       },
       "locked": {
-        "lastModified": 1671452357,
-        "narHash": "sha256-HqzXiQEegpRQ4VEl9pEPgHSIxhJrNJ27HfN1wOc7w2E=",
+        "lastModified": 1672050129,
+        "narHash": "sha256-GBQMcvJUSwAVOpDjVKzB6D5mmHI7Y4nFw+04bnS9QrM=",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "200790e9c77064c53eaf95805b013d96615ecc27",
+        "rev": "67d98f02443b9928bc77f1267741dcfdd3d7b65c",
         "type": "github"
       },
       "original": {
