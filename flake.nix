@@ -12,130 +12,118 @@
 
     pre-commit-hooks-nix.url = github:cachix/pre-commit-hooks.nix;
     pre-commit-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
-    # Fixes aarch64-darwin support.
-    pre-commit-hooks-nix.inputs.flake-utils.follows = "flake-utils";
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
   };
 
-  outputs =
-    { self
-    , nixpkgs
-    , hacknix
-    , flake-utils
-    , pre-commit-hooks-nix
-    , ...
-    }@inputs:
+  outputs = inputs@ { flake-parts, ... }:
     let
-      forAllSupportedSystems = flake-utils.lib.eachSystem [
-        "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
+      allOverlays = [
+        inputs.hacknix.overlays.default
       ];
-
-      forAllTestSystems = flake-utils.lib.eachSystem [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-
-      overlay = hacknix.lib.overlays.combine [
-        hacknix.overlay
-        (final: prev:
-          let
-          in
-          { }
-        )
-      ];
-
-      pkgsFor = system: import nixpkgs {
-        inherit system;
-        config = {
-          allowUnfree = true;
-          allowBroken = true;
-        };
-        overlays = [
-          overlay
-        ];
-      };
     in
-    {
-      # Note: `overlay` is not per-system like most other flake attributes.
-      inherit overlay;
-    }
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      debug = true;
 
-    // forAllSupportedSystems
-      (system:
-      let
-        pkgs = pkgsFor system;
+      imports = [
+        inputs.pre-commit-hooks-nix.flakeModule
+      ];
 
-        pre-commit-hooks =
-          let
-          in
-          pre-commit-hooks-nix.lib.${system}.run {
-            src = ./.;
-            hooks = {
-              nixpkgs-fmt.enable = true;
+      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
 
-              prettier = {
-                enable = true;
-                excludes = [ ".github/" ];
+      perSystem = { config, pkgs, system, ... }:
+        let
+        in
+        {
+          # We need a `pkgs` that includes our own overlays within
+          # `perSystem`. This isn't done by default, so we do this
+          # workaround. See:
+          #
+          # https://github.com/hercules-ci/flake-parts/issues/106#issuecomment-1399041045
+          _module.args.pkgs = import inputs.nixpkgs
+            {
+              inherit system;
+              config = {
+                allowUnfree = true;
+                allowBroken = true;
               };
-
-              actionlint = {
-                enable = true;
-                name = "actionlint";
-                entry = "${pkgs.actionlint}/bin/actionlint";
-                language = "system";
-                files = "^.github/workflows/";
-              };
+              overlays = allOverlays;
             };
 
-            tools = {
-              inherit (pkgs) nixpkgs-fmt;
-              inherit (pkgs.nodePackages) prettier;
+          pre-commit = {
+            check.enable = true;
+            settings = {
+              src = ./.;
+              hooks = {
+                nixpkgs-fmt.enable = true;
+
+                prettier = {
+                  enable = true;
+                  excludes = [ ".github/" ];
+                };
+
+                actionlint = {
+                  enable = true;
+                  name = "actionlint";
+                  entry = "${pkgs.actionlint}/bin/actionlint";
+                  language = "system";
+                  files = "^.github/workflows/";
+                };
+              };
+
+              excludes = [
+                "CODE_OF_CONDUCT.md"
+                "LICENSE"
+                ".mergify.yml"
+                ".buildkite/"
+              ];
             };
-
-            excludes = [
-              "CODE_OF_CONDUCT.md"
-              "LICENSE"
-              ".mergify.yml"
-              ".buildkite/"
-            ];
-
           };
-      in
-      {
-        checks = {
-          source-code-checks = pre-commit-hooks;
-        };
 
-        devShell = pkgs.mkShell {
-          buildInputs = (with pkgs; [
-            actionlint
-            nodePackages.prettier
-            nixpkgs-fmt
-            rnix-lsp
-          ]);
-        };
-      })
-
-    // {
-      hydraJobs = {
-        inherit (self) checks;
-
-        required =
-          let
-            pkgs = pkgsFor "x86_64-linux";
-          in
-          pkgs.releaseTools.aggregate {
-            name = "required-nix-ci";
-            constituents = builtins.map builtins.attrValues (with self.hydraJobs; [
-              checks.x86_64-linux
-              checks.aarch64-linux
-              checks.aarch64-darwin
+          devShells.default = pkgs.mkShell {
+            buildInputs = (with pkgs; [
+              actionlint
+              nodePackages.prettier
+              nixpkgs-fmt
+              rnix-lsp
             ]);
-            meta.description = "Required Nix CI builds";
-          };
-      };
 
-      ciJobs = hacknix.lib.flakes.recurseIntoHydraJobs self.hydraJobs;
+            shellHook = ''
+              ${config.pre-commit.installationScript}
+            '';
+          };
+        };
+
+      flake =
+        let
+          # See above, we need to use our own `pkgs` within the flake.
+          pkgs = import inputs.nixpkgs
+            {
+              system = "x86_64-linux";
+              config = {
+                allowUnfree = true;
+                allowBroken = true;
+              };
+              overlays = allOverlays;
+            };
+        in
+        {
+          hydraJobs = {
+            inherit (inputs.self) checks;
+            inherit (inputs.self) devShells;
+
+            required = pkgs.releaseTools.aggregate {
+              name = "required-nix-ci";
+              constituents = builtins.map builtins.attrValues (with inputs.self.hydraJobs; [
+                checks.x86_64-linux
+                checks.aarch64-linux
+                checks.aarch64-darwin
+              ]);
+              meta.description = "Required Nix CI builds";
+            };
+          };
+
+          ciJobs = pkgs.lib.flakes.recurseIntoHydraJobs inputs.self.hydraJobs;
+        };
     };
 }
