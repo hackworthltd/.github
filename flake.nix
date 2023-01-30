@@ -29,7 +29,7 @@
         inputs.pre-commit-hooks-nix.flakeModule
       ];
 
-      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      systems = [ "x86_64-linux" "aarch64-darwin" ];
 
       perSystem = { config, pkgs, system, ... }:
         let
@@ -116,7 +116,6 @@
               name = "required-nix-ci";
               constituents = builtins.map builtins.attrValues (with inputs.self.hydraJobs; [
                 checks.x86_64-linux
-                checks.aarch64-linux
                 checks.aarch64-darwin
               ]);
               meta.description = "Required Nix CI builds";
