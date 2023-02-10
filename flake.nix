@@ -74,7 +74,6 @@
               excludes = [
                 "CODE_OF_CONDUCT.md"
                 "LICENSE"
-                ".mergify.yml"
                 ".buildkite/"
               ];
             };
