@@ -21,7 +21,7 @@ jobs:
             substituters = https://cache.nixos.org?priority=10 https://hackworthltd.cachix.org?priority=30 https://hydra.iohk.io?priority=50 https://cache.zw3rk.com?priority=60
 
       - name: Check out repo
-        uses: actions/checkout@v3.5.3
+        uses: actions/checkout@v4.0.0
         with:
           fetch-depth: 0
 
