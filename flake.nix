@@ -84,7 +84,6 @@
               actionlint
               nodePackages.prettier
               nixpkgs-fmt
-              rnix-lsp
             ]);
 
             shellHook = ''

@@ -3,6 +3,8 @@
 .tramp_history
 result
 result-*
+.envrc
+.direnv/
 
 # pre-commit-hooks.nix
 .pre-commit-config.yaml
