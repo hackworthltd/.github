@@ -11,7 +11,7 @@ steps:
     label: ":nixos: :buildkite:"
     plugins:
       - hackworthltd/nix#v1.0.0:
-          file: ci.nix
+          file: nix/ci.nix
           agent-tags: queue=nix-build,os=linux
 
   - wait
