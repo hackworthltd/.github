@@ -1,13 +1,30 @@
 agents:
-  public: "true"
-  os: "linux"
+  queue: "nix-eval"
 
 steps:
+  - command: nix flake archive .#
+    label: ":nixos: Archive Nix flake inputs"
+    agents:
+      queue: "nix-build"
+
   - command: nix-buildkite
     label: ":nixos: :buildkite:"
     plugins:
-      - circuithub/nix-buildkite:
-          file: nix/ci.nix
+      - hackworthltd/nix#v1.0.0:
+          file: ci.nix
+          agent-tags: queue=nix-build,os=linux
 
-  - command: nix flake archive .#
-    label: ":nixos: Archive Nix flake inputs"
+  - wait
+
+  - label: ":nixos: :linux: Cache the Nix shell"
+    command: |
+      nix develop --print-build-logs --profile /tmp/hackworthltd-dot-github --command echo "done"
+    agents:
+      queue: "nix-build"
+
+  - label: ":nixos: :macos: Cache the Nix shell"
+    command: |
+      nix develop --print-build-logs --profile /tmp/hackworthltd-dot-github --command echo "done"
+    agents:
+      queue: "nix-build"
+      os: "darwin"
