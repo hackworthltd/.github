@@ -68,16 +68,11 @@
           pre-commit = {
             check.enable = true;
             settings = {
+              src = ".";
               hooks = {
                 treefmt.enable = true;
-
-                actionlint = {
-                  enable = true;
-                  name = "actionlint";
-                  entry = "${pkgs.actionlint}/bin/actionlint";
-                  language = "system";
-                  files = "^.github/workflows/";
-                };
+                actionlint.enable = true;
+                actionlint.files = "^.github/workflows/";
               };
             };
           };
