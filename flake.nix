@@ -2,30 +2,36 @@
   description = "Hackworth Ltd .github repo.";
 
   inputs = {
-    hacknix.url = github:hackworthltd/hacknix;
+    hacknix.url = "github:hackworthltd/hacknix";
     nixpkgs.follows = "hacknix/nixpkgs";
 
-    flake-utils.url = github:numtide/flake-utils;
+    systems.url = "github:nix-systems/default";
 
-    flake-compat.url = github:edolstra/flake-compat;
+    flake-utils.url = "github:numtide/flake-utils";
+
+    flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
 
-    pre-commit-hooks-nix.url = github:cachix/pre-commit-hooks.nix;
+    pre-commit-hooks-nix.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
+
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs@ { flake-parts, ... }:
+  outputs = inputs:
     let
       allOverlays = [
         inputs.hacknix.overlays.default
       ];
     in
-    flake-parts.lib.mkFlake { inherit inputs; } {
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       debug = true;
 
       imports = [
+        inputs.treefmt-nix.flakeModule
         inputs.pre-commit-hooks-nix.flakeModule
       ];
 
@@ -50,17 +56,20 @@
               overlays = allOverlays;
             };
 
+          treefmt.config =
+            {
+              projectRootFile = "flake.nix";
+              programs = {
+                prettier.enable = true;
+                nixpkgs-fmt.enable = true;
+              };
+            };
+
           pre-commit = {
             check.enable = true;
             settings = {
-              src = ./.;
               hooks = {
-                nixpkgs-fmt.enable = true;
-
-                prettier = {
-                  enable = true;
-                  excludes = [ ".github/" ];
-                };
+                treefmt.enable = true;
 
                 actionlint = {
                   enable = true;
@@ -70,25 +79,19 @@
                   files = "^.github/workflows/";
                 };
               };
-
-              excludes = [
-                "CODE_OF_CONDUCT.md"
-                "LICENSE"
-                ".buildkite/"
-              ];
             };
           };
 
           devShells.default = pkgs.mkShell {
-            buildInputs = (with pkgs; [
-              actionlint
-              nodePackages.prettier
-              nixpkgs-fmt
-            ]);
-
-            shellHook = ''
-              ${config.pre-commit.installationScript}
-            '';
+            inputsFrom = [
+              config.treefmt.build.devShell
+              config.pre-commit.devShell
+            ];
+            buildInputs = (with pkgs;
+              [
+                actionlint
+                nixd
+              ]);
           };
         };
 
