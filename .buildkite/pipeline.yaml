@@ -10,9 +10,13 @@ steps:
   - command: nix-buildkite
     label: ":nixos: :buildkite:"
     plugins:
-      - hackworthltd/nix#v1.0.0:
-          file: nix/ci.nix
+      - hackworthltd/nix#v2.2.0:
+          expr: ".#hydraJobs"
+          use-nix-build: "true"
+          attr-prefix: ".#hydraJobs."
+          nix-eval-jobs-args: --workers 4 --max-memory-size 4GiB --flake --force-recurse
           agent-tags: queue=nix-build,os=linux
+          darwin-step-agent-tags: os=darwin
 
   - wait
 
