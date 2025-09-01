@@ -12,7 +12,7 @@
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
 
-    pre-commit-hooks-nix.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit-hooks-nix.url = "github:cachix/git-hooks.nix";
     pre-commit-hooks-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -21,7 +21,8 @@
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     let
       allOverlays = [
         inputs.hacknix.overlays.default
@@ -35,9 +36,18 @@
         inputs.pre-commit-hooks-nix.flakeModule
       ];
 
-      systems = [ "x86_64-linux" "aarch64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-darwin"
+      ];
 
-      perSystem = { config, pkgs, system, ... }:
+      perSystem =
+        {
+          config,
+          pkgs,
+          system,
+          ...
+        }:
         let
         in
         {
@@ -46,33 +56,31 @@
           # workaround. See:
           #
           # https://github.com/hercules-ci/flake-parts/issues/106#issuecomment-1399041045
-          _module.args.pkgs = import inputs.nixpkgs
-            {
-              inherit system;
-              config = {
-                allowUnfree = true;
-                allowBroken = true;
-              };
-              overlays = allOverlays;
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            config = {
+              allowUnfree = true;
+              allowBroken = true;
             };
+            overlays = allOverlays;
+          };
 
-          treefmt.config =
-            {
-              projectRootFile = "flake.nix";
-              programs = {
-                prettier.enable = true;
-                nixpkgs-fmt.enable = true;
-              };
+          treefmt.config = {
+            projectRootFile = "flake.nix";
+            programs = {
+              prettier.enable = true;
+              nixfmt.enable = true;
+              shellcheck.enable = true;
+              actionlint.enable = true;
             };
+          };
 
           pre-commit = {
             check.enable = true;
             settings = {
-              src = ".";
+              src = ./.;
               hooks = {
                 treefmt.enable = true;
-                actionlint.enable = true;
-                actionlint.files = "^.github/workflows/";
               };
             };
           };
@@ -82,26 +90,31 @@
               config.treefmt.build.devShell
               config.pre-commit.devShell
             ];
-            buildInputs = (with pkgs;
+            buildInputs = (
+              with pkgs;
               [
                 actionlint
                 nixd
-              ]);
+              ]
+            );
+
+            shellHook = ''
+              ${config.pre-commit.installationScript}
+            '';
           };
         };
 
       flake =
         let
           # See above, we need to use our own `pkgs` within the flake.
-          pkgs = import inputs.nixpkgs
-            {
-              system = "x86_64-linux";
-              config = {
-                allowUnfree = true;
-                allowBroken = true;
-              };
-              overlays = allOverlays;
+          pkgs = import inputs.nixpkgs {
+            system = "x86_64-linux";
+            config = {
+              allowUnfree = true;
+              allowBroken = true;
             };
+            overlays = allOverlays;
+          };
         in
         {
           hydraJobs = {
@@ -110,12 +123,15 @@
 
             required = pkgs.releaseTools.aggregate {
               name = "required-nix-ci";
-              constituents = builtins.map builtins.attrValues (with inputs.self.hydraJobs; [
-                checks.x86_64-linux
-                checks.aarch64-darwin
-                devShells.x86_64-linux
-                devShells.aarch64-darwin
-              ]);
+              constituents = builtins.map builtins.attrValues (
+                with inputs.self.hydraJobs;
+                [
+                  checks.x86_64-linux
+                  checks.aarch64-darwin
+                  devShells.x86_64-linux
+                  devShells.aarch64-darwin
+                ]
+              );
               meta.description = "Required Nix CI builds";
             };
           };
